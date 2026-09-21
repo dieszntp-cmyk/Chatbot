@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Határ Radikális Mozgalom - Chatbot</title>
+    <style>
+        :root {
+            --bg-dark: #0a0b0d;
+            --panel-bg: #14171d;
+            --accent-red: #8b0000;
+            --accent-gold: #d4af37;
+            --border: #2a2e37;
+            --text-main: #e1e1e1;
+            --text-muted: #888888;
+            
+            /* Frakció színek */
+            --color-mojang: #ff6a00;
+            --color-hlnk: #a82e2e;
+            --color-tlkdk: #ff007f;
+            --color-hu: #006a44;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 850px;
+            height: 90vh;
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border);
+            border-top: 6px solid var(--accent-red);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #111, #1e0505);
+            padding: 15px 20px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .chat-header .title-area h1 {
+            font-size: 1.3rem;
+            color: #fff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .chat-header .title-area p {
+            font-size: 0.8rem;
+            color: var(--accent-gold);
+        }
+
+        .sender-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .sender-selector label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .sender-selector select {
+            background: #000;
+            color: #fff;
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #121418;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            position: relative;
+        }
+
+        .message .sender-title {
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* User üzenet */
+        .message.user {
+            align-self: flex-end;
+            background-color: #222933;
+            color: #fff;
+            border-right: 4px solid var(--accent-gold);
+        }
+
+        /* Bot válaszok különböző frakció szerint */
+        .message.bot {
+            align-self: flex-start;
+            background-color: #1a1d24;
+            border-left: 4px solid var(--border);
+        }
+
+        .message.bot.mojang { border-left-color: var(--color-mojang); }
+        .message.bot.hlnk { border-left-color: var(--color-hlnk); }
+        .message.bot.tlkdk { border-left-color: var(--color-tlkdk); }
+        .message.bot.hu { border-left-color: var(--color-hu); }
+
+        .chat-input-area {
+            padding: 15px;
+            background-color: var(--panel-bg);
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-row input {
+            flex: 1;
+            background: #0a0b0d;
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .input-row input:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .input-row button {
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 0 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+
+        .input-row button:hover {
+            background: #a30000;
+        }
+
+        .quick-topics {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .quick-btn {
+            background: #222630;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            background: var(--accent-gold);
+            color: #000;
+        }
+
+        /* Görgetősáv */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121418;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a2e37;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <div class="title-area">
+            <h1>Határ Radikális Mozgalom</h1>
+            <p>Multilaterális Offline Képviseleti Rendszer v2.0</p>
+        </div>
+        <div class="sender-selector">
+            <label for="factionSelect">Képviselt oldal:</label>
+            <select id="factionSelect">
+                <option value="HL NK">HL NK (Hardlandi Naturalista Köztársaság)</option>
+                <option value="Mojang FIDESZ KDMP">Mojang FIDESZ KDMP</option>
+                <option value="TL KDK">TL KDK (Trendlandi Kommunista Divatpárt)</option>
+                <option value="HU">HU (Nemzeti Hazafias Képviselet)</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="chat-box" id="chatBox">
+        <div class="message bot">
+            <div class="sender-title">
+                <span>Rendszerüzenet</span>
+            </div>
+            Üdvözöljük a <strong>Határ Radikális Mozgalom</strong> központi felületén! Válassza ki a legördülő menüben, hogy melyik frakció/oldal nevében kíván megszólalni, és küldje el üzenetét. A rendszer automatikusan lekéri az <strong>összes többi oldal</strong> hivatalos álláspontját és válaszát.
+        </div>
+    </div>
+
+    <div class="chat-input-area">
+        <div class="quick-topics">
+            <button class="quick-btn" onclick="sendSuggested('Szavazás: Bányászati és útépítési jogok az erdős területeken.')">🌲 Útépítés vs. Erdő</button>
+            <button class="quick-btn" onclick="sendSuggested('Tárgyalás: Kereskedelmi megállapodás és luxuscikkek vámja.')">🛍️ Luxuscikkek & Vám</button>
+            <button class="quick-btn" onclick="sendSuggested('Szavazás: Határvédelem, Illager-adó és fegyverkezési büdzsé.')">🛡️ Határvédelem & Fegyverkezés</button>
+            <button class="quick-btn" onclick="sendSuggested('Tárgyalás: Békefeltételek és szuverenitási garanciák.')">🕊️ Béke & Szuverenitás</button>
+        </div>
+        <div class="input-row">
+            <input type="text" id="userInput" placeholder="Írja be az álláspontját, javaslatát vagy szavazási tárgyát..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Küldés</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Frakciók adatbázisa és válaszgeneráló logikái
+    const factions = {
+        "Mojang FIDESZ KDMP": {
+            id: "mojang",
+            name: "Mojang-Stratégiai Központ (FIDESZ KDMP)",
+            color: "#ff6a00",
+            getResponse: function(text) {
+                const lower = text.toLowerCase();
+                if (lower.includes('szavaz')) return "A szavazás nálunk szent, de a döntés egyértelmű: a békés falusiak (Villagers) többsége nem akarja, hogy a külföldről finanszírozott Pillagerek diktáljanak! A nemzeti blokknak egységesen kell fellépnie a liberális Grieferek ellen!";
+                if (lower.includes('tárgyal') || lower.includes('targyal')) return "Tárgyalni készek vagyunk, de csakis a nemzeti szuverenitás talaján. Nem hajlunk meg a Nether-bürokraták előtt. Megvédjük a hazai bányákat a Redstone-szankcióktól!";
+                if (lower.includes('erdő') || lower.includes('ut') || lower.includes('út')) return "A csákány és a fejsze a fejlődés eszköze. Megvédjük a bányászati jogainkat, a fa és a kő az építkező falusiak jövőjét szolgálja!";
+                if (lower.includes('luxus') || lower.includes('divat') || lower.includes('vám')) return "A külföldi Nether-kereskedőkre extraprofit-adót vetünk ki! Nem engedjük, hogy a multinacionális Guild-ek kiszivattyúzzák az Emeraldot a kezdő játékosok zsebéből.";
+                if (lower.includes('határ') || lower.includes('fegyver') || lower.includes('béke')) return "Kétsoros Cobblestone-falat és Iron Golemeket állítunk minden kapuba! A biztonság az első, az Illager-terv határzárát megvédjük.";
+                return "Értjük a felvetést, de a belső ellenzék folyamatosan a szerver leállításáért lobbizik. Mi maradunk a stabilitás és a békés építkezés pártján!";
+            }
+        },
+        "HL NK": {
+            id: "hlnk",
+            name: "Hardlandi Naturalista Köztársaság (HL NK)",
+            color: "#a82e2e",
+            getResponse: function(text) {
+                const lower = text.toLowerCase();
+                if (lower.includes('erdő') || lower.includes('ut') || lower.includes('út') || lower.includes('fa')) return "A fák gyökerei szentek. Ha egyetlen tölgyet is ki akartok vágni valami nyomorult autópálya vagy betonmonstrum miatt, falba ütköztetek. Szavazatunk: ELLENE!";
+                if (lower.includes('luxus') || lower.includes('divat') || lower.includes('vám')) return "Plázacsecsebecsék és eldobható rongyok? Hardlandot nem érdeklik a divatbarmok és a fogyasztói métely. Nincs alku. Húzzatok acélbakancsot, az bírja az erdőt!";
+                if (lower.includes('határ') || lower.includes('fegyver') || lower.includes('háború')) return "Békepártiak vagyunk, de ha a határainkat veszélyeztetitek, a Hardlandi Köztársaság nem fog meghátrálni. Úgy gázolunk át a támadókon, mint egy blastbeat az élő koncerten!";
+                if (lower.includes('szavaz')) return "A természet törvényei felülírják a parlamentit. Olyan döntésre szavazunk csak, ami megőrzi a vadont és a függetlenséget.";
+                return "Ez a rizsa nem vezet sehova. Túl sok a sallang. Hardland nem kér a képmutatásból: természetvédelem és heavy metal, vagy a francba veletek!";
+            }
+        },
+        "TL KDK": {
+            id: "tlkdk",
+            name: "Trendlandi Kommunista Divatpárt (TL KDK)",
+            color: "#ff007f",
+            getResponse: function(text) {
+                const lower = text.toLowerCase();
+                if (lower.includes('luxus') || lower.includes('divat') || lower.includes('vám')) return "A mi kommunizmusunk nem a hiányról szól, hanem a kötelező luxusról! Mindenkinek jár az állami támogatású dizájner ruha és az ingyen hialuronsav. A proletariátusnak ragyognia kell! 💅✨";
+                if (lower.includes('erdő') || lower.includes('ut') || lower.includes('út') || lower.includes('természet')) return "Környezetvédelem? Drágám, az annyira 2020... Minél több gyárfüst, annál szebb az alkonyat a luxus-felhőkarcolónkból. Éljen a műanyag és a neon szandálok! 🛍️🏭";
+                if (lower.includes('határ') || lower.includes('fegyver') || lower.includes('háború')) return "Fúj, a büdös bőrdzsekis, maszkulin erőszak borzalmas! Nálunk csak techno-remixek és elkerített VIP luxusszalonok vannak. A határra divatrendőrséget küldünk!";
+                if (lower.includes('szavaz')) return "Szavazás? Imádom a kollektív döntéseket, feltéve, ha az én véleményem győz! Aki nem a progresszív luxusra szavaz, az megy a stílustalanok munkatáborába!";
+                return "Drágám, beszéljünk inkább a műhús-kvótáról vagy az LMBTQ+ jogokról! A tárgyalóasztalnál csak stílusos javaslatokat fogadok el! 💅☭";
+            }
+        },
+        "HU": {
+            id: "hu",
+            name: "Nemzeti Hazafias Képviselet (HU)",
+            color: "#006a44",
+            getResponse: function(text) {
+                const lower = text.toLowerCase();
+                if (lower.includes('szavaz')) return "A szavazás nem csupán jog, hanem erkölcsi kötelesség a közösségünk felé. Olyan döntést hozzon, amely hosszú távon a szülőföldünk gyarapodását és megóvását szolgálja!";
+                if (lower.includes('tárgyal') || lower.includes('targyal') || lower.includes('béke')) return "A tárgyalóasztalnál nincs helye a kishitűségnek! Mindig emelt fővel, a kölcsönös tiszteletet megkövetelve képviselje az igazunkat. A gerincünk nem eladó!";
+                if (lower.includes('luxus') || lower.includes('vám') || lower.includes('pénz')) return "Minden fillérrel, amiről döntünk, a hazai értékteremtést és a magyar családok biztonságát kell erősítenünk. Nem hagyhatjuk, hogy külső érdekek fölözzék le a munka gyümölcsét.";
+                if (lower.includes('határ') || lower.includes('fegyver')) return "A külhoni partnerekkel való együttműködés alapja az egyenrangúság. Tiszteljük mások kultúráját, de elvárjuk, hogy fejet hajtsanak a mi szuverenitásunk előtt!";
+                return "Értem a felvetését, Honfitársam. Ebben a kérdésben is az vezérelje Önt, ami a legősibb törvény: a közösségünk és a nemzetünk iránti hűség!";
+            }
+        }
+    };
+
+    function sendMessage() {
+        const inputField = document.getElementById('userInput');
+        const text = inputField.value.trim();
+        const selectedFaction = document.getElementById('factionSelect').value;
+
+        if (text === '') return;
+
+        // Felhasználói üzenet megjelenítése a választott frakció nevében
+        appendUserMessage(selectedFaction, text);
+        inputField.value = '';
+
+        // A többi frakció válaszának generálása kis késleltetéssel
+        setTimeout(() => {
+            generateResponses(selectedFaction, text);
+        }, 500);
+    }
+
+    function appendUserMessage(factionKey, text) {
+        const chatBox = document.getElementById('chatBox');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message user';
+        msgDiv.innerHTML = `
+            <div class="sender-title">
+                <span>[A Te álláspontod]</span>
+                <span>${factionKey}</span>
+            </div>
+            ${escapeHtml(text)}
+        `;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function generateResponses(userFactionKey, userText) {
+        const chatBox = document.getElementById('chatBox');
+
+        // Végigmegyünk az összes frakción, kivéve azon, aminek a nevében a user írt
+        for (const [key, faction] of Object.entries(factions)) {
+            if (key !== userFactionKey) {
+                const responseText = faction.getResponse(userText);
+                
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `message bot ${faction.id}`;
+                msgDiv.innerHTML = `
+                    <div class="sender-title">
+                        <span style="color: ${faction.color}">${faction.name}</span>
+                        <span>Határ Radikális Mozgalom Hálózat</span>
+                    </div>
+                    ${responseText}
+                `;
+                chatBox.appendChild(msgDiv);
+            }
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendSuggested(text) {
+        document.getElementById('userInput').value = text;
+        sendMessage();
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
+
+</body>
+</html>
